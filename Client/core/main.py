@@ -12,7 +12,6 @@ import Client.gui.response_window as response_window
 import Client.gui.settings_window as settings_window
 import Client.gui.incoming_call_window as incoming_call_window
 import Client.gui.call_window as call_window
-from voice_chat import VoiceConnection, VoiceConnection2
 from connector import Connector
 
 
@@ -40,14 +39,6 @@ class Session:
     _friend_req_dialog = QtWidgets.QDialog()
     friend_req_ui = friend_request.Ui_Dialog()
     friend_req_ui.setupUi(_friend_req_dialog)
-
-    _incoming_call_dialog = QtWidgets.QDialog()
-    incoming_call_ui = incoming_call_window.Ui_Dialog()
-    incoming_call_ui.setupUi(_incoming_call_dialog)
-
-    _call_dialog = QtWidgets.QDialog()
-    call_ui = call_window.Ui_Dialog()
-    call_ui.setupUi(_call_dialog)
 
     _main_window = QtWidgets.QMainWindow()
     ui = main_window.Ui_MainWindow()
@@ -89,17 +80,6 @@ class Session:
                     Session.conversations[data_from_server['friend_login']] = f"[{friend_login}]: {message}"
                 if Session.ui.list_of_friends.item(Session.ui.list_of_friends.currentRow()).text() == friend_login:
                     Session.ui.real_chat_area.setText(Session.conversations[friend_login])
-            elif data_from_server['short'] == 's_inv_con':
-                Session.incoming_call_ui.login.setText(data_from_server['friend_login'])
-                Session._incoming_call_dialog.show()
-            elif data_from_server['short'] == 's_inv_acc':
-                show_response_dialog(data_from_server['short'], 'acc')
-
-                def voip():
-                    Session.voice_conn = VoiceConnection(data_from_server['address'][0])
-                thread = threading.Thread(target=voip)
-                thread.start()
-                Session._call_dialog.show()
             elif data_from_server['short'] == 's_inv_rej':
                 show_response_dialog(data_from_server['short'], 'deny')
 
@@ -222,50 +202,6 @@ class Session:
                 Session.ui.real_chat_area.setText(Session.conversations[friend_login])
 
         Session.ui.send_message_button.clicked.connect(send_message)
-
-        def call():
-            friend_login = Session.ui.list_of_friends.item(Session.ui.list_of_friends.currentRow()).text()
-            result = Session._connector.invite_to_connect(friend_login)
-            if result['short'] == 'OK':
-                pass
-            else:
-                show_response_dialog(result['short'], result['long'])
-
-        Session.ui.call_button.clicked.connect(call)
-
-        def accept_call():
-            friend_login = Session.incoming_call_ui.login.text()
-            result = Session._connector.accept_connection(friend_login)
-            Session._incoming_call_dialog.hide()
-            if result['short'] == 'OK':
-                def voip():
-                    Session.voice_conn = VoiceConnection2()
-
-                thread = threading.Thread(target=voip)
-                thread.start()
-                Session._call_dialog.show()
-                print('ok')
-            else:
-                show_response_dialog(result['short'], result['long'])
-
-        Session.incoming_call_ui.accept_button.clicked.connect(accept_call)
-
-        def deny_call():
-            friend_login = Session.incoming_call_ui.login.text()
-            result = Session._connector.reject_connection(friend_login)
-            Session._incoming_call_dialog.hide()
-            if result['short'] == 'OK':
-                print('deny')
-            else:
-                show_response_dialog(result['short'], result['long'])
-
-        Session.incoming_call_ui.pushButton.clicked.connect(deny_call)
-
-        def end_call():
-            Session._call_dialog.hide()
-            pass
-
-        Session.call_ui.end_button.clicked.connect(end_call)
 
         Session._login_dialog.show()
         sys.exit(Session.app.exec_())

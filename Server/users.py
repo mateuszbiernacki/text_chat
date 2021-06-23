@@ -10,7 +10,6 @@ db = DBConnector()
 logged_users = {}
 current_invites = {}
 forgot_password_codes = {}
-connections = {}
 
 
 def add_user(*, login, password, email):
@@ -212,94 +211,6 @@ def change_password(*, login, code, new_password):
             return 2
     else:
         return 1
-
-
-def invite_to_connection(*, login, token, friend_login):
-    # TODO test it
-    """Returns 0 when it is everything okey.
-    Returns 1 when token is incorrect.
-    Returns 2 when user with that login is not logged.
-    Returns 3 when user with that login is not exist.
-    Returns 4 when friend is not existed.
-    Returns 5 when it is not your friend."""
-    result = is_it_correct_user_token(login=login, token=token)
-    if result == 0:
-        if friend_login in logged_users:
-            if db.check_friendship(login, friend_login):
-                connections[friend_login] = (login, 1)
-                return 0
-            else:
-                return 5
-        else:
-            return 4
-    elif result in {1, 2, 3}:
-        return result
-    else:
-        return -1
-
-
-def accept_connection(*, login, token, friend_login):
-    # TODO test it
-    """Returns 0 when it is everything okey.
-    Returns 1 when token is incorrect.
-    Returns 2 when user with that login is not logged.
-    Returns 3 when user with that login is not exist.
-    Returns 4 when friend is not existed.
-    Returns 5 when it is not your friend.
-    Returns 6 when login is not in connections dictionary.
-    Returns 7 when you are not invited."""
-    result = is_it_correct_user_token(login=login, token=token)
-    if result == 0:
-        if friend_login in logged_users:
-            if db.check_friendship(login, friend_login):
-                if login in connections:
-                    if connections[login][0] == friend_login:
-                        connections[login] = (friend_login, 0)
-                        return 0
-                    else:
-                        return 7
-                else:
-                    return 6
-            else:
-                return 5
-        else:
-            return 4
-    elif result in {1, 2, 3}:
-        return result
-    else:
-        return -1
-
-
-def reject_connection(*, login, token, friend_login):
-    # TODO test it
-    """Returns 0 when it is everything okey.
-    Returns 1 when token is incorrect.
-    Returns 2 when user with that login is not logged.
-    Returns 3 when user with that login is not exist.
-    Returns 4 when friend is not existed.
-    Returns 5 when it is not your friend.
-    Returns 6 when login is not in connections dictionary.
-    Returns 7 when you are not invited."""
-    result = is_it_correct_user_token(login=login, token=token)
-    if result == 0:
-        if friend_login in logged_users:
-            if db.check_friendship(login, friend_login):
-                if login in connections:
-                    if connections[login][0] == friend_login:
-                        connections[login] = None
-                        return 0
-                    else:
-                        return 7
-                else:
-                    return 6
-            else:
-                return 5
-        else:
-            return 4
-    elif result in {1, 2, 3}:
-        return result
-    else:
-        return -1
 
 
 def generate_token():
