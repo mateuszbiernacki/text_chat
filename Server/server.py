@@ -2,26 +2,39 @@ import socket
 import json
 import sqlite3
 
+import rsa
 import users
 
-# sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-# sock.bind(('', 2137))
 data_to_send = {}
 for user in users.db.get_list_of_users():
     data_to_send[user] = []
-
+(public_key, private_key) = rsa.newkeys(2048)
+print('Key was generated.')
+keys = {}
 while True:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(('', 2137))
+    data, address = sock.recvfrom(1024)
+    JSON_DATA = None
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind(('', 2137))
-        data, address = sock.recvfrom(1024)
         print(data)
-        JSON_DATA = json.loads(data.decode('utf-8'))
+        try:
+            JSON_DATA = json.loads(data.decode('utf-8'))
+        except:
+            JSON_DATA = json.loads(rsa.decrypt(data, private_key).decode('utf-8'))
         json_response = {
             "short": "Error",
             "long": "Undefined operation."
         }
-        if JSON_DATA["command"] == "login":
+        if JSON_DATA["command"] == "get_public_key":
+            keys[address] = rsa.PublicKey(JSON_DATA['client_public_key'][0],  # n
+                                          JSON_DATA['client_public_key'][1])  # e
+            print('kurwa', keys[address])
+            json_response = {
+                "short": "pubkey",
+                "pubkey": [public_key.n, public_key.e]
+            }
+        elif JSON_DATA["command"] == "login":
             result = users.logg_in(login=JSON_DATA["login"], password=JSON_DATA["password"], address=address)
             if result == -1:
                 json_response = {
@@ -35,6 +48,7 @@ while True:
                 }
             else:
                 data_to_send[JSON_DATA["login"]] = []
+
                 json_response = {
                     "short": "OK",
                     "long": "Successfully logged.",
@@ -240,16 +254,19 @@ while True:
                 }
             else:
                 json_response = users.prepare_standard_response(result)
-    # except KeyError:
-    #     json_response = {
-    #         "short": "Error",
-    #         "long": "Syntax error."
-    #     }
+    except KeyError:
+        json_response = {
+            "short": "Error",
+            "long": "Syntax error."
+        }
     except sqlite3.IntegrityError:
         json_response = {
             "short": "Error",
             "long": "Bad input data."
         }
-    sock.sendto(json.dumps(json_response).encode(), address)
+    if json_response["short"] == "pubkey":
+        sock.sendto(json.dumps(json_response).encode('utf-8'), address)
+    else:
+        sock.sendto(rsa.encrypt(json.dumps(json_response).encode('utf-8'), keys[address]), address)
     sock.close()
     print(users.logged_users)
