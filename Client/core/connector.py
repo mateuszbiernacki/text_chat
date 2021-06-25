@@ -7,6 +7,7 @@ import rsa
 class Connector:
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.settimeout(0.5)
         self.server_ip = 'localhost'
         self.port = 2137
         self.login = ''
@@ -33,8 +34,11 @@ class Connector:
             self.sock.sendto(json.dumps(data_to_send).encode('utf-8'), (self.server_ip, self.port))
         else:
             self.sock.sendto(rsa.encrypt(json.dumps(data_to_send).encode('utf-8'), self.server_public_key),
-                        (self.server_ip, self.port))
-        data, address = self.sock.recvfrom(1024)
+                             (self.server_ip, self.port))
+        try:
+            data, address = self.sock.recvfrom(1024)
+        except socket.timeout:
+            return self.send_message_to_server(data_to_send)
         if self.server_public_key is None:
             print('t')
             return json.loads(data.decode('utf-8'))
@@ -124,4 +128,3 @@ class Connector:
             "friend_login": friend_login,
             'message': message
         })
-

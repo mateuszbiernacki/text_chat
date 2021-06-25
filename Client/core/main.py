@@ -7,11 +7,10 @@ from PyQt5.QtCore import QTimer
 import Client.gui.forgot_password_window as forgot_password_window
 import Client.gui.friend_request as friend_request
 import Client.gui.log_reg_window as log_window
+import Client.gui.reg_window as reg_window
 import Client.gui.main_view as main_window
 import Client.gui.response_window as response_window
 import Client.gui.settings_window as settings_window
-import Client.gui.incoming_call_window as incoming_call_window
-import Client.gui.call_window as call_window
 from connector import Connector
 
 
@@ -23,6 +22,10 @@ class Session:
     _login_dialog = QtWidgets.QDialog()
     login_ui = log_window.Ui_Login_Register()
     login_ui.setupUi(_login_dialog)
+
+    _registration_dialog = QtWidgets.QDialog()
+    registration_ui = reg_window.Ui_Register()
+    registration_ui.setupUi(_registration_dialog)
 
     _response_dialog = QtWidgets.QDialog()
     response_ui = response_window.Ui_Dialog()
@@ -97,19 +100,40 @@ class Session:
                     Session.ui.list_of_friends.addItem(friend)
                 Session._main_window.show()
                 Session._login_dialog.hide()
-                timer.start(999)
+                timer.start(500)
             else:
                 show_response_dialog(response["short"], response["long"])
 
         Session.login_ui.button_log.clicked.connect(press_login_button)
 
-        def press_register_button():
-            response = Session._connector.registration(Session.login_ui.reg_line_login.text(),
-                                                       Session.login_ui.reg_line_password.text(),
-                                                       Session.login_ui.reg_line_email.text())
-            show_response_dialog(response["short"], response["long"])
+        def press_register_button_in_login_view():
+            # response = Session._connector.registration(Session.login_ui.reg_line_login.text(),
+            #                                            Session.login_ui.reg_line_password.text(),
+            #                                            Session.login_ui.reg_line_email.text())
+            # show_response_dialog(response["short"], response["long"])
+            Session._registration_dialog.show()
 
-        Session.login_ui.button_reg.clicked.connect(press_register_button)
+        Session.login_ui.button_reg.clicked.connect(press_register_button_in_login_view)
+
+        def press_register_button():
+            if Session.registration_ui.reg_line_password.text() == Session.registration_ui.reg_line_password_2.text():
+                response = Session._connector.registration(Session.registration_ui.reg_line_login.text(),
+                                                           Session.registration_ui.reg_line_password.text(),
+                                                           Session.registration_ui.reg_line_email.text())
+                show_response_dialog(response["short"], response["long"])
+                Session._registration_dialog.hide()
+            else:
+                show_response_dialog('Error', 'The passwords you entered do not match.')
+
+        Session.registration_ui.pushButton.clicked.connect(press_register_button)
+
+        def press_cancel_button_in_reg_view():
+            Session.registration_ui.reg_line_login.setText('')
+            Session.registration_ui.reg_line_password.setText('')
+            Session.registration_ui.reg_line_email.setText('')
+            Session._registration_dialog.hide()
+
+        Session.registration_ui.pushButton_2.clicked.connect(press_cancel_button_in_reg_view)
 
         def press_settings_button():
             Session.settings_ui.ip_line.setText(Session._connector.server_ip)
