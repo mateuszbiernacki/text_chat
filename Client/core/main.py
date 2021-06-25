@@ -107,10 +107,6 @@ class Session:
         Session.login_ui.button_log.clicked.connect(press_login_button)
 
         def press_register_button_in_login_view():
-            # response = Session._connector.registration(Session.login_ui.reg_line_login.text(),
-            #                                            Session.login_ui.reg_line_password.text(),
-            #                                            Session.login_ui.reg_line_email.text())
-            # show_response_dialog(response["short"], response["long"])
             Session._registration_dialog.show()
 
         Session.login_ui.button_reg.clicked.connect(press_register_button_in_login_view)
