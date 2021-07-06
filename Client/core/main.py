@@ -100,7 +100,7 @@ class Session:
                     Session.ui.list_of_friends.addItem(friend)
                 Session._main_window.show()
                 Session._login_dialog.hide()
-                timer.start(500)
+                timer.start(2000)
             else:
                 show_response_dialog(response["short"], response["long"])
 
@@ -200,7 +200,7 @@ class Session:
             response = Session._connector.accept_invite(Session.friend_req_ui.friend_login_label.text())
             if response['short'] != 'OK':
                 show_response_dialog(response['short'], response['long'])
-
+            Session._friend_req_dialog.hide()
         Session.friend_req_ui.accept_buton.clicked.connect(accept_friends_invite)
 
         def show_conversation():

@@ -55,11 +55,8 @@ class Ui_MainWindow(object):
         self.log_out_button = QtWidgets.QPushButton(self.centralwidget)
         self.log_out_button.setGeometry(QtCore.QRect(710, 10, 75, 23))
         self.log_out_button.setObjectName("log_out_button")
-        self.call_button = QtWidgets.QPushButton(self.centralwidget)
-        self.call_button.setGeometry(QtCore.QRect(190, 40, 75, 23))
-        self.call_button.setObjectName("call_button")
         self.delete_friend_list_buton = QtWidgets.QPushButton(self.centralwidget)
-        self.delete_friend_list_buton.setGeometry(QtCore.QRect(190, 80, 75, 23))
+        self.delete_friend_list_buton.setGeometry(QtCore.QRect(190, 40, 75, 23))
         self.delete_friend_list_buton.setObjectName("delete_friend_list_buton")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -85,7 +82,6 @@ class Ui_MainWindow(object):
         self.label_2.setText(_translate("MainWindow", "Invite friend by login:"))
         self.label_3.setText(_translate("MainWindow", "Real Chat:"))
         self.log_out_button.setText(_translate("MainWindow", "Log out"))
-        self.call_button.setText(_translate("MainWindow", "Call"))
         self.delete_friend_list_buton.setText(_translate("MainWindow", "Delete"))
 
 

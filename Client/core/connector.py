@@ -33,18 +33,24 @@ class Connector:
         if self.server_public_key is None:
             self.sock.sendto(json.dumps(data_to_send).encode('utf-8'), (self.server_ip, self.port))
         else:
-            self.sock.sendto(rsa.encrypt(json.dumps(data_to_send).encode('utf-8'), self.server_public_key),
-                             (self.server_ip, self.port))
+            try:
+                self.sock.sendto(rsa.encrypt(json.dumps(data_to_send).encode('utf-8'), self.server_public_key),
+                                (self.server_ip, self.port))
+            except:
+                self.sock.sendto(json.dumps(data_to_send).encode('utf-8'), (self.server_ip, self.port))
         try:
             data, address = self.sock.recvfrom(1024)
-        except socket.timeout:
+        except:
             return self.send_message_to_server(data_to_send)
         if self.server_public_key is None:
             print('t')
             return json.loads(data.decode('utf-8'))
         else:
             print('a')
-            return json.loads(rsa.decrypt(data, self.my_private_key).decode('utf-8'))
+            try:
+                return json.loads(rsa.decrypt(data, self.my_private_key).decode('utf-8'))
+            except:
+                return json.loads(data.decode('utf-8'))
 
     def log_in(self, login, password):
         return self.send_message_to_server({

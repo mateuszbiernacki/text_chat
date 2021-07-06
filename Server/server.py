@@ -249,10 +249,11 @@ while True:
             if result == 0:
                 json_response = {
                     "short": "OK",
-                    "long": "Friend was added.",
+                    "long": "Correct login and token.",
                     "list_of_friends": list_of_friends
                 }
             else:
+                print(result)
                 json_response = users.prepare_standard_response(result)
     except KeyError:
         json_response = {
@@ -267,6 +268,9 @@ while True:
     if json_response["short"] == "pubkey":
         sock.sendto(json.dumps(json_response).encode('utf-8'), address)
     else:
-        sock.sendto(rsa.encrypt(json.dumps(json_response).encode('utf-8'), keys[address]), address)
+        try:
+            sock.sendto(rsa.encrypt(json.dumps(json_response).encode('utf-8'), keys[address]), address)
+        except:
+            sock.sendto(json.dumps(json_response).encode('utf-8'), address)
     sock.close()
     print(users.logged_users)
