@@ -1,7 +1,6 @@
 import sqlite3
 
-
-PATH_TO_USERS_DATABASE = 'Data/users.db'
+PATH_TO_USERS_DATABASE = 'Data/data.db'
 
 
 def install_database():
@@ -11,6 +10,12 @@ def install_database():
     cursor.execute('create table friends (login text not null, friend_login text not null, '
                    'foreign key (login, friend_login) references users (login, login),'
                    'unique (login, friend_login))')
+    cursor.execute('create table invites (_from text not null, _to text not null,'
+                   'foreign key (_from, _to) references users (login, login),'
+                   'unique (_from, _to))')
+    cursor.execute('create table codes (login text not null, code text not null,'
+                   'foreign key (login) references users (login),'
+                   'unique (login))')
     database_connection.commit()
     database_connection.close()
 
@@ -54,6 +59,48 @@ class DBConnector:
         self.cursor.execute('select login from users')
         return [user_tuple[0] for user_tuple in self.cursor.fetchall()]
 
+    def add_invite(self, login, friend_login):
+        self.cursor.execute('insert into invites values (?, ?)', (login, friend_login))
+        self.connection.commit()
+
+    def delete_invite(self, login, friend_login):
+        self.cursor.execute('delete from invites where _from=:login and _to=:friend_login',
+                            {'login': login, 'friend_login': friend_login})
+        self.connection.commit()
+
+    def check_invite(self, login, friend_login) -> bool:
+        self.cursor.execute('select * from invites where _from=:login and _to=:friend_login',
+                            {'login': login, 'friend_login': friend_login})
+        if not self.cursor.fetchall():
+            return False
+        else:
+            return True
+
+    def add_code(self, login, code):
+        self.cursor.execute('insert into codes values (?, ?)', (login, code))
+        self.connection.commit()
+
+    def delete_code(self, login):
+        self.cursor.execute('delete from codes where login=:login',
+                            {'login': login})
+        self.connection.commit()
+
+    def check_login_in_codes(self, login) -> bool:
+        self.cursor.execute('select * from codes where login=:login',
+                            {'login': login})
+        if not self.cursor.fetchall():
+            return False
+        else:
+            return True
+
+    def check_code(self, login, code) -> bool:
+        self.cursor.execute('select * from codes where login=:login and code=:code',
+                            {'login': login, 'code': code})
+        if not self.cursor.fetchall():
+            return False
+        else:
+            return True
+
     def set_new_friend(self, login, friend_login):
         self.cursor.execute('insert into friends values (?, ?)', (login, friend_login))
         self.cursor.execute('insert into friends values (?, ?)', (friend_login, login))
@@ -79,16 +126,12 @@ class DBConnector:
             return True
 
     def change_password(self, login, new_password):
-        self.cursor.execute('update users'
-                            'set password=:new_password'
-                            'where'
-                            'login=:login',
-                            {'login': login, 'new_password': new_password})
+        self.cursor.execute('update users set password=:pass where login=:log',
+                            {'log': login, 'pass': new_password})
         self.connection.commit()
 
 
 if __name__ == '__main__':
-
     db = DBConnector()
     # db.add_user('mati', '123', 'mail@123')
     # db.add_user('mati1', '123', 'mail@1232')
