@@ -20,12 +20,12 @@ if __name__ == '__main__':
 
     print(data)
 
-    for i in range(1000):
+    for i in range(100000):
         JSON_DATA = {
             "command": "registration",
-            "login": f"matefduuuhhsusdz{i}",
+            "login": f"matefduuduhhsusdz{i}",
             "password": "213",
-            "email": f"tesddfthhow{i}e@email"
+            "email": f"tesddftdhhow{i}e@email"
         }
 
         sock.sendto(json.dumps(JSON_DATA).encode(), ("localhost", 2137))

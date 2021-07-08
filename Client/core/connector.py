@@ -22,7 +22,7 @@ class Connector:
     def get_server_public_key(self):
         public_key = self.send_message_to_server({'command': 'get_public_key',
                                                   'client_public_key': [self.my_public_key.n,
-                                                                        self.my_public_key.e]})['pubkey']
+                                                                        self.my_public_key.e]})['public_key']
         self.server_public_key = rsa.PublicKey(public_key[0], public_key[1])
 
     def set_token(self, _token):

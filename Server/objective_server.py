@@ -7,6 +7,7 @@ import json
 import sqlite3
 import threading
 import queue
+import time
 
 
 class Server:
@@ -24,10 +25,15 @@ class Server:
         self.sending_flag = True
         self.sending_thread = threading.Thread(target=self.start_sending)
         self.receiving_thread = threading.Thread(target=self.start_receiving)
+        self.threads_list = []
+        self.active_loop_threads = 0
 
     def run(self):
         self.receiving_thread.start()
         self.sending_thread.start()
+        while True:
+            time.sleep(10)
+            print(f'RUNNING THREADS: {self.active_loop_threads}')
 
     def start_receiving(self):
         print('Receiving thread is starting.')
@@ -35,7 +41,9 @@ class Server:
         while self.receiving_flag:
             try:
                 data, address = self.socket.recvfrom(1024)
-                threading.Thread(target=self.loop, args=(data, address,)).run()
+                t = threading.Thread(target=self.loop, args=(data, address,))
+                t.start()
+                self.threads_list.append(t)
             except ConnectionResetError:
                 continue
 
@@ -50,14 +58,15 @@ class Server:
                     self.socket.sendto(data, address)
 
     def loop(self, data, address):
+        self.active_loop_threads += 1
         json_data = None
         try:
             data_handler = DataHandler()
             print(data)
             try:
-                json_data = json.loads(self.crypto_method.decrypt(data, [self.private_key, True]))
-            except:
                 json_data = json.loads(self.crypto_method.decrypt(data, [self.private_key, False]))
+            except:
+                json_data = json.loads(self.crypto_method.decrypt(data, [self.private_key, True]))
             json_response = JBMPRes.ERROR_response('Undefined operation.')
             if json_data["command"] == "get_public_key":
                 self.keys[address] = rsa.PublicKey(json_data['client_public_key'][0],  # n
@@ -204,6 +213,7 @@ class Server:
         else:
             self.messages_queue.put((json_response, address, True))
         print(data_handler.logged_users)
+        self.active_loop_threads -= 1
 
 
 if __name__ == '__main__':
