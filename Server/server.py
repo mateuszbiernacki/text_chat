@@ -27,8 +27,8 @@ while True:
             "long": "Undefined operation."
         }
         if JSON_DATA["command"] == "get_public_key":
-            keys[address] = rsa.PublicKey(JSON_DATA['client_public_key'][0],  # n
-                                          JSON_DATA['client_public_key'][1])  # e
+            keys[address] = rsa.PublicKey(JSON_DATA['public_key'][0],  # n
+                                          JSON_DATA['public_key'][1])  # e
             print(keys[address])
             json_response = {
                 "short": "pubkey",

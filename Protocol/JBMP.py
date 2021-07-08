@@ -1,47 +1,39 @@
 """This is the implementation of JSON Based Messaging Protocol [JBMP]."""
 import abc
+import json
 
-VERSION = '0.1'
-ENCODE = 'utf-8'
+VERSION = b"1"
+ENCODE = "utf-8"
 
 
 # Message types list:
 SERVER_RESPONSE = 'server_response'
 
 
-class CryptoInterface(object):
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def encrypt(self, data: bytes):
-        pass
-
-    @abc.abstractmethod
-    def decrypt(self, data: bytes):
-        pass
-
-
 class JBMPMessage:
-    def __init__(self, message_type, data, crypto: CryptoInterface):
+    def __init__(self, message_type, data):
         self.version = VERSION
-        self.crypto = crypto
         self.message_type = message_type
         self.encode = ENCODE
         self.data = data
 
     def get_message(self):
         import json
-        return json.dumps({'version': self.version,
-                           'message_type': self.message_type,
-                           'crypto_class': type(self.crypto),
-                           'encoding': self.encode,
-                           'data': self.crypto.encrypt(self.data)}).encode(self.encode)
+        return json.dumps(self.data).encode(self.encode)
 
 
 class JBMPServerResponseMessageMaker:
+
     @staticmethod
     def OK_response(long: str):
         return JBMPMessage(SERVER_RESPONSE, {'short': 'OK', 'long': long}).get_message()
+
+    @staticmethod
+    def success_login_response(token, address):
+        return JBMPMessage(SERVER_RESPONSE, {'short': 'OK',
+                                             'long': "Successfully logged.",
+                                             'token': token,
+                                             'address': address}).get_message()
 
     @staticmethod
     def get_list_of_friends_response(list_of_friend: list):
@@ -50,8 +42,7 @@ class JBMPServerResponseMessageMaker:
 
     @staticmethod
     def get_public_key_response(public_key):
-        return JBMPMessage(SERVER_RESPONSE, {'short': 'pubkey',
-                                             'public_key': public_key}).get_message()
+        return json.dumps({'short': 'pubkey', 'public_key': public_key}).encode(ENCODE)
 
     @staticmethod
     def ERROR_response(long: str):
@@ -92,3 +83,8 @@ class JBMPServerResponseMessageMaker:
     @staticmethod
     def syntax_error_response():
         return JBMPServerResponseMessageMaker.ERROR_response('Syntax Error.')
+
+    @staticmethod
+    def no_message_response():
+        return JBMPMessage(SERVER_RESPONSE, {'short': 'no_message',
+                                             'long': 'No message in queue'}).get_message()

@@ -6,7 +6,7 @@ import socket
    Linux example: sudo ufw allow 2137/udp"""
 
 if __name__ == '__main__':
-    """This script receive data from other client and send back a response.
+    """This script receive data from other client and send back a JBMPRes.
     It's work in loop, so that can receive and resend several times."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(('', 2137))
