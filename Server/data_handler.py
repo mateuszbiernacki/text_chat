@@ -107,12 +107,12 @@ class DataHandler:
         Returns 2 when friend is on your friends list already.
         Returns 3 when friend is not invited you."""
         if self.db.check_user_exits(login):
-            if selfself.db.check_user_exits(friend_login):
-                if selfself.db.check_friendship(login, friend_login):
+            if self.db.check_user_exits(friend_login):
+                if self.db.check_friendship(login, friend_login):
                     return 2
-                elif selfself.db.check_invite(friend_login, login):
-                    selfself.db.set_new_friend(login, friend_login)
-                    selfself.db.delete_invite(friend_login, login)
+                elif self.db.check_invite(friend_login, login):
+                    self.db.set_new_friend(login, friend_login)
+                    self.db.delete_invite(friend_login, login)
                     return 0
                 return 3
             else:
